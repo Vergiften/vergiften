@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <title>title</title>
+    <script src="../../js/jquery.js"></script>
+    <script src="../../js/serializeObject.js"></script>
+
+    <script type="text/javascript">
+        $(function(){
+            $.ajax({
+                url : "/listToDegree", //请求服务器资源（对应cn.edu.sdjzu.xg.bysj.controller.basic.degree.ListDegreeController）
+                type : "get",
+                success : function(msg) {//请求成功的回调方法
+                    var degree_str = eval("(" + msg + ")");//json字串->jQuery对象,方便遍历
+                    var table = "<tr><td>编号</td><td>名称</td><td>operation</td></tr>";
+                    for (var i in degree_str){
+                        table += "<tr>"
+                            +"<td>" + degree_str[i].no + "</td>"
+                            +"<td>" + degree_str[i].description + "</td>"
+                            //加入删除超链接，其中degrees[i].id响应数据中的id字段值
+                            + "<td>"
+                            + "<a href='' onclick=deleteDegree(" + degree_str[i].id + ")>delete</a>"
+                            +"</td>"
+                            + "</tr>";
+                    }
+                    console.log(table);
+                    $("#table").html(table);
+                },
+                error:function(){  //请求失败的回调方法
+                    alert("请求失败，请重试!");
+                }
+            });
+        });
+
+        //deleteDegree
+        function deleteDegree(id) {
+            confirm_ = confirm('确认删除?');
+            // alert(id);
+            if(confirm_){
+                $.ajax({
+                    type:"get",
+                    url:"/DeleteToDegreeA",
+                    //请求后台时所传递的参数
+                    data:{
+                        "id":id
+                    },
+                    //参数类型为json
+                    contentType: "application/json,charset = utf-8",
+                    //返回值格式为json
+                    dataType:"json",
+                    success:function(msg){
+                        // 因为本次请求的url会被重定向到degree.html，所以正常情况下，这里不会返回信息
+                    },
+                    error:function () {
+                        alert("error");
+                    }
+                });
+            }
+        }
+
+        //提交函数
+        function submit_onClick() {
+            //调用serializeObject函数，将表单数据序列化，形成JSON对象
+            var formData = $('#degreeForm').serializeObject();
+            //JSON对象文本化
+            var degree_json = JSON.stringify(formData);
+            //Ajax请求
+            $.ajax({
+                url: "/addToDegree",
+                type: "post",
+                //请求参数
+                data: degree_json,
+                //请求参数字符集
+                contentType: "application/json;charset=utf-8",
+                //响应数据的格式
+                dataType: "json",
+                success: function (msg) {
+                    // 响应数据为JSON对象，而非字串，故无须转换
+                    alert("状态:" + msg.MSG);
+                    //重定向
+                    window.location.replace("/html/basic/degree.html");
+                },
+                error: function (msg) {
+                    alert("添加失败");
+                }
+            });
+        }
+    </script>
+
+</head>
+<body>
+
+<table border = "1px" bgcolor="#ffe4c4" id = "table">
+</table>
+
+<form id="degreeForm">
+    <label for = "no">NO</label>
+    <input name="no" id="no" value=""/>
+
+    <label for = "description">DESCRIPTION</label>
+    <input name="description" id = "description" value=""/>
+
+    <input type="button" name="submit"
+           onclick="submit_onClick();" value="提交"/>
+</form>
+
+</body>
+</html>
